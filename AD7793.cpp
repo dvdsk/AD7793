@@ -57,16 +57,16 @@
  *                           0 - if initialization was unsuccessful.
 *******************************************************************************/
 
-unsigned charAD7793::Begin(SPIClass &_spi_port = SPI, uint8_t _cs_pin, uint8_t _data_rdy_pin)
+unsigned char AD7793::begin(uint8_t _cs_pin, uint8_t _data_rdy_pin, SPIClass &_spi_port = SPI)
 {
-    spi_port = _spi_port;
+    spi_port = &_spi_port;
     cs_pin = _cs_pin;
     data_rdy_pin = _data_rdy_pin;
 
 	unsigned char status = 0x1;
 
     SPI_Init();
-    if((AD7793_GetRegisterValue(AD7793_REG_ID, 1, 1) & AD7793_ID_MASK) != AD7793_ID)
+    if((GetRegisterValue(AD7793_REG_ID, 1, 1) & AD7793_ID_MASK) != AD7793_ID)
 	{
 		status = 0x0;
 	}
@@ -96,7 +96,7 @@ unsigned char AD7793::Ready(void)
 {
 	unsigned char status = 0x0;
 
-	if((AD7793_GetRegisterValue(AD7793_REG_STAT, 1, 1) & AD7793_STAT_RDY) == 0x80)
+	if((GetRegisterValue(AD7793_REG_STAT, 1, 1) & AD7793_STAT_RDY) == 0x80)
 	{
 		status = 0x1;
 	}
@@ -113,7 +113,7 @@ unsigned char AD7793::Error(void)
 {
 	unsigned char status = 0x0;
 
-    if((AD7793_GetRegisterValue(AD7793_REG_STAT, 1, 1) & AD7793_STAT_ERR) == 0x40)
+    if((GetRegisterValue(AD7793_REG_STAT, 1, 1) & AD7793_STAT_ERR) == 0x40)
 	{
 		status = 0x1;
 	}
@@ -130,7 +130,7 @@ unsigned char AD7793::Channel3(void)
 {
 	unsigned char status = 0x0;
 
-    if((AD7793_GetRegisterValue(AD7793_REG_STAT, 1, 1) & AD7793_STAT_CH3) == 0x04)
+    if((GetRegisterValue(AD7793_REG_STAT, 1, 1) & AD7793_STAT_CH3) == 0x04)
 	{
 		status = 0x1;
 	}
@@ -147,7 +147,7 @@ unsigned char AD7793::Channel2(void)
 {
 	unsigned char status = 0x0;
 
-    if((AD7793_GetRegisterValue(AD7793_REG_STAT, 1, 1) & AD7793_STAT_CH2) == 0x02)
+    if((GetRegisterValue(AD7793_REG_STAT, 1, 1) & AD7793_STAT_CH2) == 0x02)
 	{
 		status = 0x1;
 	}
@@ -164,7 +164,7 @@ unsigned char AD7793::Channel1(void)
 {
 	unsigned char status = 0x0;
 
-    if((AD7793_GetRegisterValue(AD7793_REG_STAT, 1, 1) & AD7793_STAT_CH1) == 0x01)
+    if((GetRegisterValue(AD7793_REG_STAT, 1, 1) & AD7793_STAT_CH1) == 0x01)
 	{
 		status = 0x1;
 	}
@@ -233,7 +233,7 @@ void AD7793::SetRegisterValue(unsigned char regAddress,
 *******************************************************************************/
 void AD7793::WaitRdyGoLow(void)
 {
-    while( AD7793_RDY_STATE )
+    while( digitalRead(data_rdy_pin) )
     {
         ;
     }
@@ -250,12 +250,12 @@ void AD7793::SetMode(unsigned long mode)
 {
     unsigned long command;
 
-    command = AD7793_GetRegisterValue(AD7793_REG_MODE,
+    command = GetRegisterValue(AD7793_REG_MODE,
                                       2,
                                       1); // CS is modified by SPI read/write functions.
     command &= ~AD7793_MODE_SEL(0xFF);
     command |= AD7793_MODE_SEL(mode);
-    AD7793_SetRegisterValue(
+    SetRegisterValue(
             AD7793_REG_MODE,
             command,
             2,
@@ -273,12 +273,12 @@ void AD7793::SetClockSource(unsigned long clockSource)
 {
     unsigned long command;
 
-    command = AD7793_GetRegisterValue(AD7793_REG_MODE,
+    command = GetRegisterValue(AD7793_REG_MODE,
                                       2,
                                       1); // CS is modified by SPI read/write functions.
     command &= ~AD7793_MODE_CLKSRC(0xFF);
     command |= AD7793_MODE_CLKSRC(clockSource);
-    AD7793_SetRegisterValue(
+    SetRegisterValue(
             AD7793_REG_MODE,
             command,
             2,
@@ -296,12 +296,12 @@ void AD7793::SetFilterUpdateRate(unsigned long filterRate)
 {
     unsigned long command;
 
-    command = AD7793_GetRegisterValue(AD7793_REG_MODE,
+    command = GetRegisterValue(AD7793_REG_MODE,
                                       2,
                                       1); // CS is modified by SPI read/write functions.
     command &= ~AD7793_MODE_RATE(0xFF);
     command |= AD7793_MODE_RATE(filterRate);
-    AD7793_SetRegisterValue(
+    SetRegisterValue(
             AD7793_REG_MODE,
             command,
             2,
@@ -320,12 +320,12 @@ void AD7793::SetExcitDirection(unsigned long direction)
 {
     unsigned long command;
 
-    command = AD7793_GetRegisterValue(AD7793_REG_IO,
+    command = GetRegisterValue(AD7793_REG_IO,
                                       1,
                                       1); // CS is modified by SPI read/write functions.
     command &= ~AD7793_IEXCDIR(0xF);
     command |= AD7793_IEXCDIR(direction);
-    AD7793_SetRegisterValue(
+    SetRegisterValue(
             AD7793_REG_IO,
             command,
             1,
@@ -344,12 +344,12 @@ void AD7793::SetExcitCurrent(unsigned long current)
 {
     unsigned long command;
 
-    command = AD7793_GetRegisterValue(AD7793_REG_IO,
+    command = GetRegisterValue(AD7793_REG_IO,
                                       1,
                                       1); // CS is modified by SPI read/write functions.
     command &= ~AD7793_IEXCEN(0xF);
     command |= AD7793_IEXCEN(current);
-    AD7793_SetRegisterValue(
+    SetRegisterValue(
             AD7793_REG_IO,
             command,
             1,
@@ -367,12 +367,12 @@ void AD7793::SetBiasVoltage(unsigned long voltage)
 {
     unsigned long command;
 
-    command = AD7793_GetRegisterValue(AD7793_REG_CONF,
+    command = GetRegisterValue(AD7793_REG_CONF,
                                       2,
                                       1); // CS is modified by SPI read/write functions.
     command &= ~AD7793_CONF_VBIAS(0xFF);
     command |= AD7793_CONF_VBIAS(voltage);
-    AD7793_SetRegisterValue(
+    SetRegisterValue(
             AD7793_REG_CONF,
             command,
             2,
@@ -389,12 +389,12 @@ void AD7793::EnableBurnoutCurr(void)
 {
     unsigned long command;
 
-    command = AD7793_GetRegisterValue(AD7793_REG_CONF,
+    command = GetRegisterValue(AD7793_REG_CONF,
                                       2,
                                       1); // CS is modified by SPI read/write functions.
     command &= ~AD7793_CONF_BO_EN;
     command |= AD7793_CONF_BO_EN;
-    AD7793_SetRegisterValue(
+    SetRegisterValue(
             AD7793_REG_CONF,
             command,
             2,
@@ -413,11 +413,11 @@ void AD7793::DisableBurnoutCurr(void)
 {
     unsigned long command;
 
-    command = AD7793_GetRegisterValue(AD7793_REG_CONF,
+    command = GetRegisterValue(AD7793_REG_CONF,
                                       2,
                                       1); // CS is modified by SPI read/write functions.
     command &= ~AD7793_CONF_BO_EN;
-    AD7793_SetRegisterValue(
+    SetRegisterValue(
             AD7793_REG_CONF,
             command,
             2,
@@ -435,12 +435,12 @@ void AD7793::EnableUnipolar(void)
 {
     unsigned long command;
 
-    command = AD7793_GetRegisterValue(AD7793_REG_CONF,
+    command = GetRegisterValue(AD7793_REG_CONF,
                                       2,
                                       1); // CS is modified by SPI read/write functions.
     command &= ~AD7793_CONF_UNIPOLAR;
     command |= AD7793_CONF_UNIPOLAR;
-    AD7793_SetRegisterValue(
+    SetRegisterValue(
             AD7793_REG_CONF,
             command,
             2,
@@ -458,11 +458,11 @@ void AD7793::DisableBipolar(void)
 {
     unsigned long command;
 
-    command = AD7793_GetRegisterValue(AD7793_REG_CONF,
+    command = GetRegisterValue(AD7793_REG_CONF,
                                       2,
                                       1); // CS is modified by SPI read/write functions.
     command &= ~AD7793_CONF_UNIPOLAR;
-    AD7793_SetRegisterValue(
+    SetRegisterValue(
             AD7793_REG_CONF,
             command,
             2,
@@ -480,12 +480,12 @@ void AD7793::EnableCurrBoost(void)
 {
     unsigned long command;
 
-    command = AD7793_GetRegisterValue(AD7793_REG_CONF,
+    command = GetRegisterValue(AD7793_REG_CONF,
                                       2,
                                       1); // CS is modified by SPI read/write functions.
     command &= ~AD7793_CONF_BOOST;
     command |= AD7793_CONF_BOOST;
-    AD7793_SetRegisterValue(
+    SetRegisterValue(
             AD7793_REG_CONF,
             command,
             2,
@@ -503,11 +503,11 @@ void AD7793::DisableCurrBoost(void)
 {
     unsigned long command;
 
-    command = AD7793_GetRegisterValue(AD7793_REG_CONF,
+    command = GetRegisterValue(AD7793_REG_CONF,
                                       2,
                                       1); // CS is modified by SPI read/write functions.
     command &= ~AD7793_CONF_BOOST;
-    AD7793_SetRegisterValue(
+    SetRegisterValue(
             AD7793_REG_CONF,
             command,
             2,
@@ -524,12 +524,12 @@ void AD7793::SetGain(unsigned long gain)
 	{
 		unsigned long command;
 
-    command = AD7793_GetRegisterValue(AD7793_REG_CONF,
+    command = GetRegisterValue(AD7793_REG_CONF,
                                       2,
                                       1); // CS is modified by SPI read/write functions.
     command &= ~AD7793_CONF_GAIN(0xFF);
     command |= AD7793_CONF_GAIN(gain);
-    AD7793_SetRegisterValue(
+    SetRegisterValue(
             AD7793_REG_CONF,
             command,
             2,
@@ -548,12 +548,12 @@ void AD7793::SetIntReference(unsigned char type)
 {
     unsigned long command = 0;
 
-    command = AD7793_GetRegisterValue(AD7793_REG_CONF,
+    command = GetRegisterValue(AD7793_REG_CONF,
                                       2,
                                       1); // CS is modified by SPI read/write functions.
     command &= ~AD7793_CONF_REFSEL(AD7793_REFSEL_INT);
     command |= AD7793_CONF_REFSEL(type);
-    AD7793_SetRegisterValue(AD7793_REG_CONF,
+    SetRegisterValue(AD7793_REG_CONF,
 							command,
 							2,
                             1); // CS is modified by SPI read/write functions.
@@ -569,12 +569,12 @@ void AD7793::EnableBufMode(void)
 {
     unsigned long command;
 
-    command = AD7793_GetRegisterValue(AD7793_REG_CONF,
+    command = GetRegisterValue(AD7793_REG_CONF,
                                       2,
                                       1); // CS is modified by SPI read/write functions.
     command &= ~AD7793_CONF_BUF;
     command |= AD7793_CONF_BUF;
-    AD7793_SetRegisterValue(
+    SetRegisterValue(
             AD7793_REG_CONF,
             command,
             2,
@@ -591,11 +591,11 @@ void AD7793::DisableBufMode(void)
 {
     unsigned long command;
 
-    command = AD7793_GetRegisterValue(AD7793_REG_CONF,
+    command = GetRegisterValue(AD7793_REG_CONF,
                                       2,
                                       1); // CS is modified by SPI read/write functions.
     command &= ~AD7793_CONF_BUF;
-    AD7793_SetRegisterValue(
+    SetRegisterValue(
             AD7793_REG_CONF,
             command,
             2,
@@ -612,12 +612,12 @@ void AD7793::SetChannel(unsigned long channel)
 {
     unsigned long command;
 
-    command = AD7793_GetRegisterValue(AD7793_REG_CONF,
+    command = GetRegisterValue(AD7793_REG_CONF,
                                       2,
                                       1); // CS is modified by SPI read/write functions.
     command &= ~AD7793_CONF_CHAN(0xFF);
     command |= AD7793_CONF_CHAN(channel);
-    AD7793_SetRegisterValue(
+    SetRegisterValue(
             AD7793_REG_CONF,
             command,
             2,
@@ -639,15 +639,15 @@ void AD7793::Calibrate(unsigned char mode, unsigned char channel)
     unsigned long oldRegValue = 0x0;
     unsigned long newRegValue = 0x0;
 
-    AD7793_SetChannel(channel);
-    oldRegValue = AD7793_GetRegisterValue(AD7793_REG_MODE, 2, 1); // CS is modified by SPI read/write functions.
+    SetChannel(channel);
+    oldRegValue = GetRegisterValue(AD7793_REG_MODE, 2, 1); // CS is modified by SPI read/write functions.
     oldRegValue &= ~AD7793_MODE_SEL(0x7);
     newRegValue = oldRegValue | AD7793_MODE_SEL(mode);
-    AD7793_SetRegisterValue(AD7793_REG_MODE,
+    SetRegisterValue(AD7793_REG_MODE,
     						newRegValue,
     						2,
     						0); // CS is not modified by SPI read/write functions.
-	AD7793_WaitRdyGoLow();
+	WaitRdyGoLow();
     digitalWrite(cs_pin,HIGH);
 }
 
@@ -661,13 +661,13 @@ unsigned long AD7793::SingleConversion(void)
     unsigned long command = 0x0;
     unsigned long regData = 0x0;
 
-    command  = AD7793_MODE_SEL(AD7793_MODE_SINGLE);
-    AD7793_SetRegisterValue(AD7793_REG_MODE,
+    command = AD7793_MODE_SEL(AD7793_MODE_SINGLE);
+    SetRegisterValue(AD7793_REG_MODE,
                             command,
                             2,
                             0);// CS is not modified by SPI read/write functions.
-    AD7793_WaitRdyGoLow();
-    regData = AD7793_GetRegisterValue(AD7793_REG_DATA, 3, 0); // CS is not modified by SPI read/write functions.
+    WaitRdyGoLow();
+    regData = GetRegisterValue(AD7793_REG_DATA, 3, 0); // CS is not modified by SPI read/write functions.
     digitalWrite(cs_pin,HIGH);
 
     return(regData);
@@ -685,14 +685,14 @@ unsigned long AD7793::ContinuousReadAvg(unsigned char sampleNumber)
     unsigned char count          = 0x0;
 
     command = AD7793_MODE_SEL(AD7793_MODE_CONT);
-    AD7793_SetRegisterValue(AD7793_REG_MODE,
+    SetRegisterValue(AD7793_REG_MODE,
                             command,
                             2,
                             0);// CS is not modified by SPI read/write functions.
     for(count = 0;count < sampleNumber;count ++)
     {
-        AD7793_WaitRdyGoLow();
-        samplesAverage += AD7793_GetRegisterValue(AD7793_REG_DATA, 3, 0);  // CS is not modified by SPI read/write functions.
+        WaitRdyGoLow();
+        samplesAverage += GetRegisterValue(AD7793_REG_DATA, 3, 0);  // CS is not modified by SPI read/write functions.
     }
     digitalWrite(cs_pin,HIGH);
     samplesAverage = samplesAverage / sampleNumber;
@@ -708,8 +708,8 @@ unsigned long AD7793::ContinuousSingleRead()
 {
     unsigned long regData = 0x0;
 
-    AD7793_WaitRdyGoLow();
-    regData = AD7793_GetRegisterValue(AD7793_REG_DATA, 3, 1);  // CS is modified by SPI read/write functions.
+    WaitRdyGoLow();
+    regData = GetRegisterValue(AD7793_REG_DATA, 3, 1);  // CS is modified by SPI read/write functions.
     digitalWrite(cs_pin,HIGH);
     return(regData);
 }
@@ -721,8 +721,8 @@ unsigned char AD7793::SPI_Init()
 	digitalWrite(cs_pin,HIGH);
 	pinMode(data_rdy_pin,INPUT);
 
-	spi_port.begin(); // configure the SPI port for your SPI device.
-	spi_port.beginTransaction(SPISettings(4000000, MSBFIRST, SPI_MODE3)); 
+	spi_port->begin(); // configure the SPI port for your SPI device.
+	spi_port->beginTransaction(SPISettings(4000000, MSBFIRST, SPI_MODE3)); 
     return(1);
 }
 
@@ -742,7 +742,7 @@ unsigned char AD7793::SPI_Write(unsigned char* data,
 	int SCNumber = data[0];
 
 	digitalWrite(cs_pin,LOW);
-	spi_port.transfer(&data[1],bytesNumber);
+	spi_port->transfer(&data[1],bytesNumber);
 	if (SCNumber == 0x1) {
 		digitalWrite(cs_pin,HIGH);
 		}
@@ -770,7 +770,7 @@ unsigned char AD7793::SPI_Read(unsigned char* data,
     int SCNumber = data[0];
    for(i = 1 ;i < bytesNumber + 1 ; i ++)
     {
-		  data[i-1] = spi_port.transfer(data[i]);
+		  data[i-1] = spi_port->transfer(data[i]);
 	}
     if (SCNumber == 0x1) {
 		digitalWrite(cs_pin,HIGH);

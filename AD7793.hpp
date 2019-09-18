@@ -55,9 +55,6 @@
 /* AD7793                                                                   */
 /******************************************************************************/
 
-/* AD7793 GPIO */
-#define AD7793_RDY_STATE       GPIO1_STATE
-
 /*AD7793 Registers*/
 #define AD7793_REG_COMM		0 /* Communications Register(WO, 8-bit) */
 #define AD7793_REG_STAT	    0 /* Status Register	    (RO, 8-bit) */
@@ -191,7 +188,7 @@ class AD7793{
 
 	public:
 	/* Initialize AD7793 and check if the device is present*/
-	unsigned char Begin(SPIClass &spi_port = SPI, uint8_t _cs_pin, uint8_t _data_rdy_pin);
+	unsigned char begin(uint8_t _cs_pin, uint8_t _data_rdy_pin, SPIClass &_spi_port = SPI);
 
 	/* Sends 32 consecutive 1's on SPI in order to reset the part. */
 	void Reset(void);
@@ -298,6 +295,6 @@ class AD7793{
 	/* Reads data from SPI. */
 	unsigned char SPI_Read(unsigned char* data,
 						unsigned char bytesNumber);
-}
+};
 
 #endif	// _AD7793_H_
