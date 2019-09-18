@@ -47,10 +47,7 @@
 /******************************************************************************/
 /* Include Files                                                              */
 /******************************************************************************/
-#include "AD7793.h"				// AD7793 definitions.
-#include "Communication.h"		// Communication definitions.
-#include "Arduino.h"
-#include "SPI.h"
+#include "AD7793.hpp"				// AD7793 definitions.
 
 /***************************************************************************//**
  * @brief Initializes the AD7793 and checks if the device is present.
@@ -60,8 +57,12 @@
  *                           0 - if initialization was unsuccessful.
 *******************************************************************************/
 
-unsigned char AD7793_Init(void)
+unsigned charAD7793::Begin(SPIClass &_spi_port = SPI, uint8_t _cs_pin, uint8_t _data_rdy_pin)
 {
+    spi_port = _spi_port;
+    cs_pin = _cs_pin;
+    data_rdy_pin = _data_rdy_pin;
+
 	unsigned char status = 0x1;
 
     SPI_Init();
@@ -77,13 +78,13 @@ unsigned char AD7793_Init(void)
  *
  * @return  None.
 *******************************************************************************/
-void AD7793_Reset(void)
+void AD7793::Reset(void)
 {
 	unsigned char dataToSend[5] = {0x01, 0xff, 0xff, 0xff, 0xff};
 
-    //ADI_PART_CS_LOW;
+    //digitalWrite(cs_pin,LOW);
 	SPI_Write(dataToSend,4);
-	//ADI_PART_CS_HIGH;
+	//digitalWrite(cs_pin,HIGH);
 }
 /***************************************************************************//**
  * @brief Reads the Ready Bit for ADC
@@ -91,7 +92,7 @@ void AD7793_Reset(void)
  * @return status: 1 - if conversion is not yet completed and data is not yet written to the data register.
  *                 0 - if data is written to the ADC data register.
 *******************************************************************************/
-unsigned char AD7793_Ready(void)
+unsigned char AD7793::Ready(void)
 {
 	unsigned char status = 0x0;
 
@@ -108,7 +109,7 @@ unsigned char AD7793_Ready(void)
  * @return status: 1 - result written to ADC data register all clamped has been all clamped to 1 or 0.
  *                 0 - No error due to overrrange, underrange or other error sources.
 *******************************************************************************/
-unsigned char AD7793_Error(void)
+unsigned char AD7793::Error(void)
 {
 	unsigned char status = 0x0;
 
@@ -125,7 +126,7 @@ unsigned char AD7793_Error(void)
  * @return status: 1 - Channel 3 is being converted by the ADC.
  *                 0 - Channel 3 is not being converted by the ADC..
 *******************************************************************************/
-unsigned char AD7793_Channel3(void)
+unsigned char AD7793::Channel3(void)
 {
 	unsigned char status = 0x0;
 
@@ -142,7 +143,7 @@ unsigned char AD7793_Channel3(void)
  * @return status: 1 - Channel 2 is being converted by the ADC.
  *                 0 - Channel 2 is not being converted by the ADC..
 *******************************************************************************/
-unsigned char AD7793_Channel2(void)
+unsigned char AD7793::Channel2(void)
 {
 	unsigned char status = 0x0;
 
@@ -159,7 +160,7 @@ unsigned char AD7793_Channel2(void)
  * @return status: 1 - Channel 1 is being converted by the ADC.
  *                 0 - Channel 1 is not being converted by the ADC..
 *******************************************************************************/
-unsigned char AD7793_Channel1(void)
+unsigned char AD7793::Channel1(void)
 {
 	unsigned char status = 0x0;
 
@@ -178,7 +179,7 @@ unsigned char AD7793_Channel1(void)
  *
  * @return data - The value of the selected register register.
 *******************************************************************************/
-unsigned long AD7793_GetRegisterValue(unsigned char regAddress,
+unsigned long AD7793::GetRegisterValue(unsigned char regAddress,
                                       unsigned char size,
                                       unsigned char modifyCS)
 {
@@ -206,7 +207,7 @@ unsigned long AD7793_GetRegisterValue(unsigned char regAddress,
  *
  * @return  None.
 *******************************************************************************/
-void AD7793_SetRegisterValue(unsigned char regAddress,
+void AD7793::SetRegisterValue(unsigned char regAddress,
                              unsigned long regValue,
                              unsigned char size,
                              unsigned char modifyCS)
@@ -230,7 +231,7 @@ void AD7793_SetRegisterValue(unsigned char regAddress,
  *
  * @return None.
 *******************************************************************************/
-void AD7793_WaitRdyGoLow(void)
+void AD7793::WaitRdyGoLow(void)
 {
     while( AD7793_RDY_STATE )
     {
@@ -245,7 +246,7 @@ void AD7793_WaitRdyGoLow(void)
  *
  * @return  None.
 *******************************************************************************/
-void AD7793_SetMode(unsigned long mode)
+void AD7793::SetMode(unsigned long mode)
 {
     unsigned long command;
 
@@ -268,7 +269,7 @@ void AD7793_SetMode(unsigned long mode)
  *
  * @return  None.
 *******************************************************************************/
-void AD7793_SetClockSource(unsigned long clockSource)
+void AD7793::SetClockSource(unsigned long clockSource)
 {
     unsigned long command;
 
@@ -291,7 +292,7 @@ void AD7793_SetClockSource(unsigned long clockSource)
  *
  * @return  None.
 *******************************************************************************/
-void AD7793_SetFilterUpdateRate(unsigned long filterRate)
+void AD7793::SetFilterUpdateRate(unsigned long filterRate)
 {
     unsigned long command;
 
@@ -315,7 +316,7 @@ void AD7793_SetFilterUpdateRate(unsigned long filterRate)
  * @return  None.
 *******************************************************************************/
 
-void AD7793_SetExcitDirection(unsigned long direction)
+void AD7793::SetExcitDirection(unsigned long direction)
 {
     unsigned long command;
 
@@ -339,7 +340,7 @@ void AD7793_SetExcitDirection(unsigned long direction)
  * @return  None.
 *******************************************************************************/
 
-void AD7793_SetExcitCurrent(unsigned long current)
+void AD7793::SetExcitCurrent(unsigned long current)
 {
     unsigned long command;
 
@@ -362,7 +363,7 @@ void AD7793_SetExcitCurrent(unsigned long current)
  *
  * @return  None.
 *******************************************************************************/
-void AD7793_SetBiasVoltage(unsigned long voltage)
+void AD7793::SetBiasVoltage(unsigned long voltage)
 {
     unsigned long command;
 
@@ -383,7 +384,7 @@ void AD7793_SetBiasVoltage(unsigned long voltage)
  *
  * @return  None.
 *******************************************************************************/
-void AD7793_EnableBurnoutCurr(void)
+void AD7793::EnableBurnoutCurr(void)
 
 {
     unsigned long command;
@@ -407,7 +408,7 @@ void AD7793_EnableBurnoutCurr(void)
  *
  * @return  None.
 *******************************************************************************/
-void AD7793_DisableBurnoutCurr(void)
+void AD7793::DisableBurnoutCurr(void)
 
 {
     unsigned long command;
@@ -429,7 +430,7 @@ void AD7793_DisableBurnoutCurr(void)
  *
  * @return  None.
 *******************************************************************************/
-void AD7793_EnableUnipolar(void)
+void AD7793::EnableUnipolar(void)
 
 {
     unsigned long command;
@@ -452,7 +453,7 @@ void AD7793_EnableUnipolar(void)
  *
  * @return  None.
 *******************************************************************************/
-void AD7793_DisableBipolar(void)
+void AD7793::DisableBipolar(void)
 
 {
     unsigned long command;
@@ -474,7 +475,7 @@ void AD7793_DisableBipolar(void)
  *
  * @return  None.
 *******************************************************************************/
-void AD7793_EnableCurrBoost(void)
+void AD7793::EnableCurrBoost(void)
 
 {
     unsigned long command;
@@ -497,7 +498,7 @@ void AD7793_EnableCurrBoost(void)
  *
  * @return  None.
 *******************************************************************************/
-void AD7793_DisableCurrBoost(void)
+void AD7793::DisableCurrBoost(void)
 
 {
     unsigned long command;
@@ -519,7 +520,7 @@ void AD7793_DisableCurrBoost(void)
  *
  * @return  None.
 *******************************************************************************/
-void AD7793_SetGain(unsigned long gain)
+void AD7793::SetGain(unsigned long gain)
 	{
 		unsigned long command;
 
@@ -543,7 +544,7 @@ void AD7793_SetGain(unsigned long gain)
  *
  * @return None.
 *******************************************************************************/
-void AD7793_SetIntReference(unsigned char type)
+void AD7793::SetIntReference(unsigned char type)
 {
     unsigned long command = 0;
 
@@ -564,7 +565,7 @@ void AD7793_SetIntReference(unsigned char type)
  *
  * @return  None.
 *******************************************************************************/
-void AD7793_EnableBufMode(void)
+void AD7793::EnableBufMode(void)
 {
     unsigned long command;
 
@@ -586,7 +587,7 @@ void AD7793_EnableBufMode(void)
  *
  * @return  None.
 *******************************************************************************/
-void AD7793_DisableBufMode(void)
+void AD7793::DisableBufMode(void)
 {
     unsigned long command;
 
@@ -607,7 +608,7 @@ void AD7793_DisableBufMode(void)
  *
  * @return  None.
 *******************************************************************************/
-void AD7793_SetChannel(unsigned long channel)
+void AD7793::SetChannel(unsigned long channel)
 {
     unsigned long command;
 
@@ -630,7 +631,7 @@ void AD7793_SetChannel(unsigned long channel)
  *
  * @return none.
 *******************************************************************************/
-void AD7793_Calibrate(unsigned char mode, unsigned char channel)
+void AD7793::Calibrate(unsigned char mode, unsigned char channel)
 {
     //unsigned short oldRegValue = 0x0;  //J'ai remplacé short par long	????
     //unsigned short newRegValue = 0x0;
@@ -647,7 +648,7 @@ void AD7793_Calibrate(unsigned char mode, unsigned char channel)
     						2,
     						0); // CS is not modified by SPI read/write functions.
 	AD7793_WaitRdyGoLow();
-    ADI_PART_CS_HIGH;
+    digitalWrite(cs_pin,HIGH);
 }
 
 /***************************************************************************//**
@@ -655,7 +656,7 @@ void AD7793_Calibrate(unsigned char mode, unsigned char channel)
  *
  * @return regData - Result of a single analog-to-digital conversion.
 *******************************************************************************/
-unsigned long AD7793_SingleConversion(void)
+unsigned long AD7793::SingleConversion(void)
 {
     unsigned long command = 0x0;
     unsigned long regData = 0x0;
@@ -667,7 +668,7 @@ unsigned long AD7793_SingleConversion(void)
                             0);// CS is not modified by SPI read/write functions.
     AD7793_WaitRdyGoLow();
     regData = AD7793_GetRegisterValue(AD7793_REG_DATA, 3, 0); // CS is not modified by SPI read/write functions.
-    ADI_PART_CS_HIGH;
+    digitalWrite(cs_pin,HIGH);
 
     return(regData);
 }
@@ -677,7 +678,7 @@ unsigned long AD7793_SingleConversion(void)
  *
  * @return samplesAverage - The average of the conversion results.
 *******************************************************************************/
-unsigned long AD7793_ContinuousReadAvg(unsigned char sampleNumber)
+unsigned long AD7793::ContinuousReadAvg(unsigned char sampleNumber)
 {
     unsigned long samplesAverage = 0x0;
     unsigned long command        = 0x0;
@@ -693,7 +694,7 @@ unsigned long AD7793_ContinuousReadAvg(unsigned char sampleNumber)
         AD7793_WaitRdyGoLow();
         samplesAverage += AD7793_GetRegisterValue(AD7793_REG_DATA, 3, 0);  // CS is not modified by SPI read/write functions.
     }
-    ADI_PART_CS_HIGH;
+    digitalWrite(cs_pin,HIGH);
     samplesAverage = samplesAverage / sampleNumber;
     return(samplesAverage);
 }
@@ -703,12 +704,76 @@ unsigned long AD7793_ContinuousReadAvg(unsigned char sampleNumber)
  *
  * @return samplesAverage - Result of a single analog-to-digital conversion.
 *******************************************************************************/
-unsigned long AD7793_ContinuousSingleRead()
+unsigned long AD7793::ContinuousSingleRead()
 {
     unsigned long regData = 0x0;
 
     AD7793_WaitRdyGoLow();
     regData = AD7793_GetRegisterValue(AD7793_REG_DATA, 3, 1);  // CS is modified by SPI read/write functions.
-    ADI_PART_CS_HIGH;
+    digitalWrite(cs_pin,HIGH);
     return(regData);
 }
+
+
+unsigned char AD7793::SPI_Init()
+{	
+    pinMode(cs_pin, OUTPUT);
+	digitalWrite(cs_pin,HIGH);
+	pinMode(data_rdy_pin,INPUT);
+
+	spi_port.begin(); // configure the SPI port for your SPI device.
+	spi_port.beginTransaction(SPISettings(4000000, MSBFIRST, SPI_MODE3)); 
+    return(1);
+}
+
+/***************************************************************************//**
+ * @brief Writes data to SPI.
+ *
+ * @param data - Write data buffer:
+ *               - first byte is the chip select number;
+ *               - from the second byte onwards are located data bytes to write.
+ * @param bytesNumber - Number of bytes to write.
+ *
+ * @return Number of written bytes.
+*******************************************************************************/
+unsigned char AD7793::SPI_Write(unsigned char* data,
+                        unsigned char bytesNumber)
+{
+	int SCNumber = data[0];
+
+	digitalWrite(cs_pin,LOW);
+	spi_port.transfer(&data[1],bytesNumber);
+	if (SCNumber == 0x1) {
+		digitalWrite(cs_pin,HIGH);
+		}
+	return(bytesNumber);
+}
+
+/***************************************************************************//**
+ * @brief Reads data from SPI.
+ *
+ * @param data - As an input parameter, data represents the write buffer:
+ *               - first byte is the chip select number;
+ *               - from the second byte onwards are located data bytes to write.
+ *               As an output parameter, data represents the read buffer:
+ *               - from the first byte onwards are located the read data bytes.
+ * @param bytesNumber - Number of bytes to write.
+ *
+ * @return Number of written bytes.
+*******************************************************************************/
+unsigned char AD7793::SPI_Read(unsigned char* data,
+                       unsigned char bytesNumber)
+{ int i = 0;
+
+
+    digitalWrite(cs_pin,LOW);
+    int SCNumber = data[0];
+   for(i = 1 ;i < bytesNumber + 1 ; i ++)
+    {
+		  data[i-1] = spi_port.transfer(data[i]);
+	}
+    if (SCNumber == 0x1) {
+		digitalWrite(cs_pin,HIGH);
+	}
+ 	return(bytesNumber);
+	}

@@ -31,8 +31,7 @@
  Ph. Sonnet, March 29, 2019
  */
  
-#include <AD7793.h>
-#include <Communication.h>
+#include <AD7793.hpp>
 #include <SPI.h>
 
 unsigned long conv; /* The 24 bit output code resulting from a conversion by the ADC and read from the data register */
@@ -42,12 +41,13 @@ float V; /* The voltage read on the analog input channel 2 (should be between -0
 float RRTD; /* The reference resistor: here, 4.99 Kohm, 0.1%, 10ppm/C */
 float temp; /* The temperature read on the analog input channel 1 */
 
+AD7793 ad7793();
 
 void setup() {
     Serial.begin(9600);      
     
     
-    unsigned char answer = AD7793_Init(); /* Initialize AD7793 and check if the device is present */
+    unsigned char answer = ad7793.Init(); /* Initialize AD7793 and check if the device is present */
     Serial.print("AD7793 status = ");
     if (answer == 1) {
       Serial.println("OK");
@@ -56,11 +56,11 @@ void setup() {
       Serial.println("Device is not present");
     }
     
-    AD7793_Reset(); /* Sends 32 consecutive 1's on SPI in order to reset the part */       
-    AD7793_SetChannel(AD7793_CH_AIN2P_AIN2M); /* Selects channel 2 of AD7793 */
-    AD7793_SetGain(AD7793_GAIN_1); /* Sets the gain to 1 */
-    AD7793_SetIntReference(AD7793_REFSEL_INT); /* Sets the reference source for the ADC. */
-    conv = AD7793_SingleConversion();
+    ad7793.Reset(); /* Sends 32 consecutive 1's on SPI in order to reset the part */       
+    ad7793.SetChannel(AD7793_CH_AIN2P_AIN2M); /* Selects channel 2 of AD7793 */
+    ad7793.SetGain(AD7793_GAIN_1); /* Sets the gain to 1 */
+    ad7793.SetIntReference(AD7793_REFSEL_INT); /* Sets the reference source for the ADC. */
+    conv = ad7793.SingleConversion();
     
     Vref = 1.17; /* This is the internal reference voltage provided by the AD7793, expressed in volt */
     GAIN = 1.0; 
@@ -71,25 +71,25 @@ void setup() {
     Serial.println("Temperature (Celsius)");
     Serial.println("====================");
         
-    AD7793_Reset(); /* Sends 32 consecutive 1's on SPI in order to reset the part */   
-    AD7793_SetChannel(AD7793_CH_AIN1P_AIN1M); /* Selects channel 1 of AD7793 */
-    AD7793_SetGain(AD7793_GAIN_32); /* Sets the gain to 32 */
+    ad7793.Reset(); /* Sends 32 consecutive 1's on SPI in order to reset the part */   
+    ad7793.SetChannel(AD7793_CH_AIN1P_AIN1M); /* Selects channel 1 of AD7793 */
+    ad7793.SetGain(AD7793_GAIN_32); /* Sets the gain to 32 */
     GAIN = 32.0;
     
     /* As the gain of the internal instrumentation amplifier has been changed, Analog Devices recommends performing a calibration  */
-    AD7793_Calibrate(AD7793_MODE_CAL_INT_ZERO, AD7793_CH_AIN1P_AIN1M); /* Performs Internal Zero calibration to the specified channel. */
-    AD7793_Calibrate(AD7793_MODE_CAL_INT_FULL, AD7793_CH_AIN1P_AIN1M); /* Performs Internal Full Calibration to the specified channel. */
+    ad7793.Calibrate(AD7793_MODE_CAL_INT_ZERO, AD7793_CH_AIN1P_AIN1M); /* Performs Internal Zero calibration to the specified channel. */
+    ad7793.Calibrate(AD7793_MODE_CAL_INT_FULL, AD7793_CH_AIN1P_AIN1M); /* Performs Internal Full Calibration to the specified channel. */
     
-    AD7793_SetIntReference(AD7793_REFSEL_EXT); /* Sets the voltage reference source for the ADC */
-    AD7793_SetExcitDirection(AD7793_DIR_IEXC1_IOUT1_IEXC2_IOUT2); /*Sets the direction of the internal excitation current source */
+    ad7793.SetIntReference(AD7793_REFSEL_EXT); /* Sets the voltage reference source for the ADC */
+    ad7793.SetExcitDirection(AD7793_DIR_IEXC1_IOUT1_IEXC2_IOUT2); /*Sets the direction of the internal excitation current source */
 
-    AD7793_SetMode(AD7793_MODE_CONT);  /* Continuous Conversion Mode */
-    AD7793_SetExcitCurrent(AD7793_EN_IXCEN_210uA);/* Sets the current of the AD7793 internal excitation current source */
+    ad7793.SetMode(AD7793_MODE_CONT);  /* Continuous Conversion Mode */
+    ad7793.SetExcitCurrent(AD7793_EN_IXCEN_210uA);/* Sets the current of the AD7793 internal excitation current source */
     delay(1000); /* Allows excitation current to settle before starting conversions*/    
 }
 
 void loop() {
-    conv = AD7793_ContinuousSingleRead();
+    conv = ad7793.ContinuousSingleRead();
     RRTD = 4990 * (conv - 8388608.0) / (8388608.0 * GAIN); /* Computes the RTD resistance from the conversion code */
     temp = (RRTD - 100.0) / 0.385; /* Uses the t = f(RTD) mathematical relationship for PT100 (also for PT1000) */
     Serial.println(temp);

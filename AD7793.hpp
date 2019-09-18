@@ -47,6 +47,10 @@
 #ifndef __AD7793_H__
 #define __AD7793_H__
 
+#include <stdint.h>
+#include "Arduino.h"
+#include <SPI.h>
+
 /******************************************************************************/
 /* AD7793                                                                   */
 /******************************************************************************/
@@ -179,103 +183,121 @@
 /* Functions Prototypes                                                       */
 /******************************************************************************/
 
-/* Initialize AD7793 and check if the device is present*/
-unsigned char AD7793_Init(void);
+class AD7793{
+	private:
+	uint8_t cs_pin;
+	uint8_t data_rdy_pin;
+	SPIClass* spi_port;
 
-/* Sends 32 consecutive 1's on SPI in order to reset the part. */
-void AD7793_Reset(void);
+	public:
+	/* Initialize AD7793 and check if the device is present*/
+	unsigned char Begin(SPIClass &spi_port = SPI, uint8_t _cs_pin, uint8_t _data_rdy_pin);
 
-/* Reads the Ready Bit for ADC */
-unsigned char AD7793_Ready();
+	/* Sends 32 consecutive 1's on SPI in order to reset the part. */
+	void Reset(void);
 
-/* Reads the ADC Error Bit */
-unsigned char AD7793_Error();
+	/* Reads the Ready Bit for ADC */
+	unsigned char Ready();
 
-/* Indicates that channel 3 is being converted by the ADC */
-unsigned char AD7793_Channel3();
+	/* Reads the ADC Error Bit */
+	unsigned char Error();
 
-/* Indicates that channel 2 is being converted by the ADC */
-unsigned char AD7793_Channel2();
+	/* Indicates that channel 3 is being converted by the ADC */
+	unsigned char Channel3();
 
-/* Indicates that channel 1 is being converted by the ADC */
-unsigned char AD7793_Channel1();
+	/* Indicates that channel 2 is being converted by the ADC */
+	unsigned char Channel2();
+
+	/* Indicates that channel 1 is being converted by the ADC */
+	unsigned char Channel1();
 
 
-/* Reads the value of the selected register. */
-unsigned long AD7793_GetRegisterValue(unsigned char regAddress,
-									  unsigned char size,
-                                      unsigned char modifyCS);
+	/* Reads the value of the selected register. */
+	unsigned long GetRegisterValue(unsigned char regAddress,
+										unsigned char size,
+										unsigned char modifyCS);
 
-/* Writes a value to the register. */
-void AD7793_SetRegisterValue(unsigned char regAddress,
-							 unsigned long regValue,
-							 unsigned char size,
-                             unsigned char modifyCS);
+	/* Writes a value to the register. */
+	void SetRegisterValue(unsigned char regAddress,
+								unsigned long regValue,
+								unsigned char size,
+								unsigned char modifyCS);
 
-/* Waits for RDY pin to go low. */
-void AD7793_WaitRdyGoLow(void);
+	/* Waits for RDY pin to go low. */
+	void WaitRdyGoLow(void);
 
-/* Sets the operating mode of AD7793 */
-void AD7793_SetMode(unsigned long mode);
+	/* Sets the operating mode of AD7793 */
+	void SetMode(unsigned long mode);
 
-/* Sets the ADC clock source of AD7793 */
-void AD7793_SetClockSource(unsigned long clockSource);
+	/* Sets the ADC clock source of AD7793 */
+	void SetClockSource(unsigned long clockSource);
 
-/* Sets the filter update rate of AD7793 */
-void AD7793_SetFilterUpdateRate(unsigned long filterRate);
+	/* Sets the filter update rate of AD7793 */
+	void SetFilterUpdateRate(unsigned long filterRate);
 
-/* Sets the direction of the internal excitation current source */
-void AD7793_SetExcitDirection(unsigned long direction);
+	/* Sets the direction of the internal excitation current source */
+	void SetExcitDirection(unsigned long direction);
 
-/* Sets the current of the internal excitation current source */
-void AD7793_SetExcitCurrent(unsigned long current);
+	/* Sets the current of the internal excitation current source */
+	void SetExcitCurrent(unsigned long current);
 
-/* Bias voltage generator enable */
-void AD7793_SetBiasVoltage(unsigned long voltage);
+	/* Bias voltage generator enable */
+	void SetBiasVoltage(unsigned long voltage);
 
-/* Enable burnout current */
-void AD7793_EnableBurnoutCurr(void);
+	/* Enable burnout current */
+	void EnableBurnoutCurr(void);
 
-/* Disable burnout current of AD7793 */
-void AD7793_DisableBurnoutCurr(void);
+	/* Disable burnout current of AD7793 */
+	void DisableBurnoutCurr(void);
 
-/* Enable unipolar coding of AD7793 */
-void AD7793_EnableUnipolar(void);
+	/* Enable unipolar coding of AD7793 */
+	void EnableUnipolar(void);
 
-/* Disable bipolar coding of AD7793 */
-void AD7793_DisableBipolar(void);
+	/* Disable bipolar coding of AD7793 */
+	void DisableBipolar(void);
 
-/* Enable bias voltage generator current boost of AD7793 */
-void AD7793_EnableCurrBoost(void);
+	/* Enable bias voltage generator current boost of AD7793 */
+	void EnableCurrBoost(void);
 
-/* Disable bias voltage generator current boost of AD7793 */
-void AD7793_DisableCurrBoost(void);
+	/* Disable bias voltage generator current boost of AD7793 */
+	void DisableCurrBoost(void);
 
-/* Sets the gain of the In-Amp */
-void AD7793_SetGain(unsigned long gain);
+	/* Sets the gain of the In-Amp */
+	void SetGain(unsigned long gain);
 
-/* Sets the reference source for the ADC */
-void AD7793_SetIntReference(unsigned char type);
+	/* Sets the reference source for the ADC */
+	void SetIntReference(unsigned char type);
 
-/* Enable buffered mode of AD7793*/
-void AD7793_EnableBufMode(void);
+	/* Enable buffered mode of AD7793*/
+	void EnableBufMode(void);
 
-/* Disable buffered mode of AD7793 */
-void AD7793_DisableBufMode(void);
+	/* Disable buffered mode of AD7793 */
+	void DisableBufMode(void);
 
-/* Selects the channel of AD7793 */
-void AD7793_SetChannel(unsigned long channel);
+	/* Selects the channel of AD7793 */
+	void SetChannel(unsigned long channel);
 
-/* Performs the given calibration to the specified channel. */
-void AD7793_Calibrate(unsigned char mode, unsigned char channel);
+	/* Performs the given calibration to the specified channel. */
+	void Calibrate(unsigned char mode, unsigned char channel);
 
-/* Returns the result of a single conversion. */
-unsigned long AD7793_SingleConversion(void);
+	/* Returns the result of a single conversion. */
+	unsigned long SingleConversion(void);
 
-/* Returns the average of several conversion results. */
-unsigned long AD7793_ContinuousReadAvg(unsigned char sampleNumber);
+	/* Returns the average of several conversion results. */
+	unsigned long ContinuousReadAvg(unsigned char sampleNumber);
 
-/* Returns a single measurement, provided continuous mesurement mode has been set up. */
-unsigned long AD7793_ContinuousSingleRead();
+	/* Returns a single measurement, provided continuous mesurement mode has been set up. */
+	unsigned long ContinuousSingleRead();
+
+	/* Initializes the SPI communication peripheral. */
+	unsigned char SPI_Init();
+
+	/* Writes data to SPI. */
+	unsigned char SPI_Write(unsigned char* data,
+							unsigned char bytesNumber);
+	/* Reads data from SPI. */
+	unsigned char SPI_Read(unsigned char* data,
+						unsigned char bytesNumber);
+}
 
 #endif	// _AD7793_H_
